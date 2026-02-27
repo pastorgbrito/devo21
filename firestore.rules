@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función helper para validar si el usuario está autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Función para validar si el usuario tiene rol de SUPER_ADMIN
+    function isSuperAdmin() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN';
+    }
+
+    // Reglas para la colección users
+    match /users/{userId} {
+      // Cualquier usuario activo puede leer perfiles
+      allow read: if isAuthenticated();
+      
+      // Permitir creación inicial si es el propio usuario
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Solo puede actualizar su propio perfil O un Super Admin
+      allow update, delete: if (isAuthenticated() && request.auth.uid == userId) || isSuperAdmin();
+    }
+
+    // Reglas para iglesias y grupos
+    match /churches/{churchId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+    
+    match /groups/{groupId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+    
+    // Estudios: Super Admin puede escribir, todos los autenticados pueden leer
+    match /studies/{studyId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+  }
+}

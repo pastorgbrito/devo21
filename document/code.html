@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Santuario Vibrant - Prototipo</title>
+    
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/history@5/umd/history.development.js"></script>
+    <script src="https://unpkg.com/react-router@6.3.0/umd/react-router.development.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6.3.0/umd/react-router-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#36cf17",
+                        "navy-dark": "#0A0F1E",
+                        "navy-card": "#161E2E",
+                        "violet-main": "#8B5CF6",
+                        "mint-accent": "#4ade80",
+                        "coral-accent": "#FB7185",
+                        "background-dark": "#0A0F0A",
+                        "card-dark": "#161B16",
+                        "neon-green": "#39FF14",
+                        "electric-blue": "#00E5FF",
+                        "vibrant-purple": "#8b5cf6",
+                        "vibrant-teal": "#14b8a6",
+                        "vibrant-coral": "#fb7185",
+                        "slate-dark": "#0F172A",
+                    },
+                    fontFamily: {
+                        "sans": ["Plus Jakarta Sans", "sans-serif"],
+                        "display": ["Plus Jakarta Sans", "sans-serif"],
+                        "reading": ["Newsreader", "serif"],
+                        "inter": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply bg-[#0A0F1E] text-slate-100;
+                font-family: 'Plus Jakarta Sans', sans-serif;
+            }
+        }
+        
+        @layer utilities {
+            .neon-glow-violet {
+                box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2);
+            }
+            .orb-glow {
+                background: radial-gradient(circle at center, #8B5CF6 0%, transparent 70%);
+                filter: blur(40px);
+            }
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.08);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+            }
+            .bg-textured {
+                background-color: #0f172a;
+                background-image: radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+                                  radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.15) 0px, transparent 50%);
+            }
+            .text-gradient {
+                background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            .glass-morphism {
+                @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
+            }
+            .badge-glow {
+                box-shadow: 0 0 20px -5px currentColor;
+            }
+        }
+
+        @keyframes dot-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.3); opacity: 1; }
+        }
+        .dot-ani { animation: dot-pulse 1.4s infinite ease-in-out; }
+        .dot-2 { animation-delay: 0.2s; }
+        .dot-3 { animation-delay: 0.4s; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="dark">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { createRoot } = ReactDOM;
+        const { MemoryRouter, Routes, Route, Link, useNavigate, useLocation } = ReactRouterDOM;
+
+        // --- Shared Components ---
+
+        const Navigation = ({ activeTab }) => {
+            const tabs = [
+                { id: 'home', icon: 'dashboard', label: 'Home', path: '/' },
+                { id: 'retos', icon: 'rocket_launch', label: 'Retos', path: '/lectura' },
+                { id: 'community', icon: 'hub', label: 'Comunidad', path: '/ia' },
+                { id: 'progreso', icon: 'analytics', label: 'Progreso', path: '/progreso' },
+                { id: 'admin', icon: 'monitoring', label: 'Admin', path: '/admin' }
+            ];
+
+            return (
+                <nav className="fixed bottom-0 w-full max-w-[430px] border-t border-white/5 bg-navy-dark/90 backdrop-blur-2xl px-4 pb-9 pt-4 flex justify-between items-center z-30 mx-auto left-0 right-0">
+                    {tabs.map((tab) => (
+                        <Link 
+                            key={tab.id}
+                            to={tab.path} 
+                            className={`flex flex-col items-center gap-1.5 transition-colors ${activeTab === tab.id ? 'text-violet-main' : 'text-slate-500'}`}
+                        >
+                            <span className={`material-symbols-outlined text-[26px] ${activeTab === tab.id ? 'fill-[1]' : ''}`}>
+                                {tab.icon}
+                            </span>
+                            <p className="text-[9px] font-extrabold tracking-widest uppercase">{tab.label}</p>
+                        </Link>
+                    ))}
+                </nav>
+            );
+        };
+
+        // --- Screen 1: Dashboard Home ---
+        const DashboardPage = () => {
+            const navigate = useNavigate();
+            return (
+                <div className="flex min-h-screen w-full flex-col max-w-[430px] mx-auto border-x border-white/5 bg-navy-dark">
+                    <header className="sticky top-0 z-20 flex items-center bg-navy-dark/80 backdrop-blur-xl p-5 justify-between border-b border-white/5">
+                        <div className="flex size-10 shrink-0 items-center justify-center bg-white/5 rounded-full">
+                            <span className="material-symbols-outlined text-mint-accent text-[20px]">settings</span>
+                        </div>
+                        <h1 className="text-lg font-extrabold tracking-tight text-white uppercase italic">Santuario</h1>
+                        <div className="flex size-10 items-center justify-end">
+                            <div className="size-9 rounded-full bg-gradient-to-tr from-violet-main to-coral-accent p-[1px]">
+                                <div className="bg-navy-dark w-full h-full rounded-full flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-white text-[20px] fill-[1]">account_circle</span>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    <main className="flex-1 pb-32">
+                        <section className="p-6">
+                            <div className="flex flex-col items-center mb-6">
+                                <span className="px-3 py-1 rounded-full bg-violet-main/10 text-violet-main text-[10px] font-bold tracking-[0.2em] uppercase mb-3 border border-violet-main/20">
+                                    Día 12 de 21
+                                </span>
+                                <h2 className="text-2xl font-bold text-white tracking-tight">Paz en la Tormenta</h2>
+                            </div>
+                            <div className="grid grid-cols-7 gap-2.5 px-2">
+                                {[...Array(11)].map((_, i) => (
+                                    <div key={i} className="aspect-square rounded-lg bg-mint-accent/10 border border-mint-accent/30 flex items-center justify-center relative overflow-hidden">
+                                        <span className="material-symbols-outlined text-mint-accent text-sm fill-[1]">done_all</span>
+                                    </div>
+                                ))}
+                                <div className="aspect-square rounded-lg bg-violet-main border-2 border-violet-main flex items-center justify-center neon-glow-violet">
+                                    <span className="text-xs font-black text-white">12</span>
+                                </div>
+                                {[...Array(9)].map((_, i) => (
+                                    <div key={i} className="aspect-square rounded-lg bg-white/5 border border-white/10 opacity-30"></div>
+                                ))}
+                            </div>
+                        </section>
+                        <section className="flex flex-col items-center justify-center py-12 relative">
+                            <div className="absolute orb-glow w-64 h-64 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-40"></div>
+                            <div className="relative">
+                                <button 
+                                    onClick={() => navigate('/lectura')}
+                                    className="relative flex flex-col items-center justify-center w-48 h-48 rounded-full bg-white text-navy-dark shadow-[0_0_50px_rgba(255,255,255,0.15)] active:scale-95 transition-all duration-300 z-10 overflow-hidden"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-slate-200"></div>
+                                    <div className="relative flex flex-col items-center">
+                                        <span className="material-symbols-outlined text-5xl mb-2 text-violet-main">bolt</span>
+                                        <span className="text-lg font-black uppercase tracking-tighter">Iniciar</span>
+                                        <span className="text-[10px] font-bold text-violet-main/60 tracking-widest uppercase">Ahora</span>
+                                    </div>
+                                </button>
+                                <div className="absolute -inset-2 border-2 border-violet-main/30 rounded-full animate-pulse"></div>
+                            </div>
+                        </section>
+                        <section className="px-6 py-4">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-base font-extrabold uppercase tracking-tight text-white/90">Muro de Peticiones</h3>
+                                <button className="bg-coral-accent/10 hover:bg-coral-accent/20 text-coral-accent px-4 py-2 rounded-full text-xs font-bold transition-colors flex items-center gap-1.5 border border-coral-accent/20">
+                                    <span className="material-symbols-outlined text-base">add</span> Nueva
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                <RequestCard 
+                                    user="María García" 
+                                    time="Hace 2 horas" 
+                                    text="&quot;Pido fortaleza para mi familia en este momento de cambio. Que la paz de Dios guarde nuestros corazones.&quot;" 
+                                    prayers={12} 
+                                    stars={5}
+                                    img="https://lh3.googleusercontent.com/aida-public/AB6AXuDqiaD34akI6OLikH6k8RGPWFJFn1mtrvDVD2vxrke06P7S29xhjUgL59wVLgJyuM4sDdylJNin6kappJSCZq9NrfGGvijTYsKe1OqD6mjZagZQ2VvzkWZR2-NW2Y-XtB9Do2Hf637VhNWpglsEZrD9cGhwQG3J97-coqFdeqg7H6kY7at15NqseTd-Z1IzlY0NgwLV4NGvVj0js_yDo8e_RIJ0ACiDQ-EqDPp_MCagkRFLHO70z-J3lNUtVm8iZ49KXuAwCB7utzM"
+                                    color="violet"
+                                />
+                                <RequestCard 
+                                    user="Juan Rivera" 
+                                    time="Hace 5 horas" 
+                                    text="&quot;Agradecido por la provisión en mi nuevo trabajo. Gracias a todos por sus oraciones.&quot;" 
+                                    prayers={24} 
+                                    stars={8}
+                                    img="https://lh3.googleusercontent.com/aida-public/AB6AXuA7gmFrztMxpwdcfCPyf3Q-TP_Z_abq0BkuWT6su5Vw2Z4HTpx5tpSJxw6Li9fb0xksFffcMKWNkBMY0P2gEOweZ5Kj6ArsUn8OFgsJjRpuZiJruFDSD79xMsd1jWa1bLQ9_-Ahm6NmI6EjBtrZlrwMHd1GIEPfdmSW7RzV8Jr-8Dq046hEWrG6VBMiiEZUxi2NCxWgrhJ51w_-PO3ydoEQlKGM7XUCToepyVEm1BVeBkVDWc7JsUJfXE6jOHKkPTQ1kJ8Jxq4f5MY"
+                                    color="coral"
+                                />
+                            </div>
+                        </section>
+                    </main>
+                    <Navigation activeTab="home" />
+                </div>
+            );
+        };
+
+        const RequestCard = ({ user, time, text, prayers, stars, img, color }) => (
+            <div className="p-5 rounded-2xl bg-navy-card border border-white/5 relative overflow-hidden group">
+                <div className={`absolute top-0 right-0 w-24 h-24 ${color === 'violet' ? 'bg-violet-main/5' : 'bg-coral-accent/5'} blur-2xl rounded-full -mr-10 -mt-10`}></div>
+                <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-9 h-9 rounded-full ring-2 ${color === 'violet' ? 'ring-violet-main/20' : 'ring-coral-accent/20'} overflow-hidden`}>
+                        <img alt="Avatar" className="w-full h-full object-cover" src={img}/>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="font-bold text-sm text-white">{user}</span>
+                        <span className="text-[10px] text-slate-500 font-medium">{time}</span>
+                    </div>
+                </div>
+                <p className="text-sm leading-relaxed text-slate-300 font-medium mb-5" dangerouslySetInnerHTML={{ __html: text }}></p>
+                <div className="flex gap-3">
+                    <button className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 flex items-center gap-2 text-[11px] font-bold text-mint-accent">
+                        🙏 <span>{prayers}</span>
+                    </button>
+                    <button className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 flex items-center gap-2 text-[11px] font-bold text-coral-accent">
+                        ✨ <span>{stars}</span>
+                    </button>
+                </div>
+            </div>
+        );
+
+        // --- Screen 2: Bible Reading ---
+        const ReadingPage = () => {
+            const navigate = useNavigate();
+            return (
+                <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#0a0a0c] text-white">
+                    <header className="sticky top-0 z-30 flex items-center justify-between bg-black/80 px-6 py-5 backdrop-blur-xl border-b border-white/5">
+                        <button onClick={() => navigate(-1)} className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-all active:scale-90">
+                            <span className="material-symbols-outlined text-white text-xl">arrow_back_ios_new</span>
+                        </button>
+                        <div className="flex flex-col items-center">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#6366f1]">Día 1 • Despertar</span>
+                            <h1 className="text-base font-semibold tracking-tight">Lectura Bíblica</h1>
+                        </div>
+                        <div className="flex items-center justify-center bg-[#6366f1]/20 border border-[#6366f1]/30 px-3 py-1 rounded-full">
+                            <span className="text-[10px] font-bold text-[#6366f1] tracking-wider">NVI</span>
+                        </div>
+                    </header>
+                    <div className="px-6 py-6">
+                        <div className="glass-effect rounded-2xl p-2 flex items-center justify-between gap-2 max-w-sm mx-auto">
+                            <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl hover:bg-white/5 transition-all active:scale-95">
+                                <span className="material-symbols-outlined text-accent">text_fields</span>
+                                <span className="text-xs font-medium text-white/70">A-</span>
+                            </button>
+                            <div className="w-px h-8 bg-white/10"></div>
+                            <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl hover:bg-white/5 transition-all active:scale-95">
+                                <span className="material-symbols-outlined text-accent">text_fields</span>
+                                <span className="text-xs font-medium text-white/70">A+</span>
+                            </button>
+                            <div className="w-px h-8 bg-white/10"></div>
+                            <button className="flex-[1.5] flex items-center justify-center gap-3 py-3 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#a855f7] shadow-lg shadow-[#6366f1]/20 transition-all active:scale-95">
+                                <span className="material-symbols-outlined text-white fill-1">volume_up</span>
+                                <span className="text-xs font-bold text-white uppercase tracking-wider">Escuchar</span>
+                            </button>
+                        </div>
+                    </div>
+                    <main className="flex-1 px-8 py-4 md:max-w-2xl md:mx-auto">
+                        <div className="mb-10 text-center">
+                            <h2 className="text-4xl font-bold tracking-tight mb-3 text-gradient">Juan 1:1-5</h2>
+                            <div className="flex justify-center gap-1">
+                                <div className="h-1.5 w-1.5 rounded-full bg-[#6366f1]/40"></div>
+                                <div className="h-1.5 w-6 rounded-full bg-[#6366f1]"></div>
+                                <div className="h-1.5 w-1.5 rounded-full bg-[#6366f1]/40"></div>
+                            </div>
+                        </div>
+                        <article className="font-reading space-y-8 text-[22px] leading-[1.7] text-white/90 font-light pb-40">
+                            <p>
+                                <span className="text-6xl font-bold text-[#a855f7] float-left mr-4 leading-[0.8] mt-2 font-display">E</span>n el principio ya existía el Verbo, y el Verbo estaba con Dios, y el Verbo era Dios. Él estaba con Dios en el principio. 
+                            </p>
+                            <p>
+                                Por medio de él todas las cosas fueron creadas; sin él, nada de lo creado llegó a existir. En él estaba la vida, y la vida era la luz de la humanidad. 
+                            </p>
+                            <p className="border-l-2 border-[#6366f1]/30 pl-6 italic text-white/70">
+                                Esta luz resplandece en las tinieblas, y las tinieblas no han podido extinguirla.
+                            </p>
+                            <div className="mt-16 relative group">
+                                <div className="absolute -inset-1 bg-gradient-to-r from-[#6366f1]/20 to-[#a855f7]/20 rounded-3xl blur opacity-75"></div>
+                                <div className="relative glass-effect p-8 rounded-2xl">
+                                    <span className="material-symbols-outlined text-[#a855f7] mb-4 text-3xl">lightbulb</span>
+                                    <p className="text-xl font-medium leading-relaxed italic text-white/80">
+                                        "La luz brilla en medio de lo que no entendemos. ¿Qué área de tu vida necesita hoy un nuevo comienzo bajo Su luz?"
+                                    </p>
+                                </div>
+                            </div>
+                        </article>
+                    </main>
+                    <footer className="fixed bottom-0 left-0 right-0 z-40 flex flex-col items-center bg-black/60 backdrop-blur-2xl border-t border-white/10 pb-safe">
+                        <div className="w-full px-6 py-4 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl glass-effect group">
+                                    <span className="material-symbols-outlined text-[#6366f1] group-hover:scale-110 transition-transform">graphic_eq</span>
+                                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#a855f7] rounded-full border-2 border-[#0a0a0c] animate-pulse"></div>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-white leading-tight">Deep Focus</p>
+                                    <p className="text-[10px] font-medium text-white/40 uppercase tracking-widest">Ambient Audio</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4 glass-effect px-4 py-2 rounded-2xl">
+                                <div className="flex flex-col items-end mr-2">
+                                    <span className="text-sm font-bold text-[#6366f1] tabular-nums">12:45</span>
+                                    <span className="text-[9px] font-bold text-white/30 uppercase">Meditar</span>
+                                </div>
+                                <button className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20">
+                                    <span className="material-symbols-outlined text-base">pause</span>
+                                </button>
+                            </div>
+                        </div>
+                        <Navigation activeTab="retos" />
+                    </footer>
+                </div>
+            );
+        };
+
+        // --- Screen 3: AI Chat ---
+        const AIChatPage = () => {
+            const navigate = useNavigate();
+            return (
+                <div className="relative flex h-screen w-full flex-col overflow-hidden max-w-[430px] mx-auto border-x border-white/5 bg-textured text-white">
+                    <header className="flex items-center glass-effect p-4 pt-6 pb-4 justify-between sticky top-0 z-20">
+                        <div className="flex items-center gap-3">
+                            <button onClick={() => navigate(-1)} className="text-white/70 active:scale-95 transition-transform">
+                                <span className="material-symbols-outlined">arrow_back_ios_new</span>
+                            </button>
+                            <div className="flex flex-col">
+                                <h2 className="text-white text-lg font-extrabold font-display leading-tight tracking-tight">Guía IA Vibrant</h2>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="size-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                                    <span className="text-emerald-400 text-[10px] uppercase tracking-widest font-black">Online Now</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button className="flex items-center justify-center rounded-full h-10 w-10 glass-effect text-white">
+                            <span className="material-symbols-outlined">tune</span>
+                        </button>
+                    </header>
+                    <div className="mx-4 mt-4 p-4 rounded-2xl glass-effect flex items-center gap-4 border-l-4 border-primary">
+                        <div className="bg-gradient-to-br from-primary to-secondary text-white rounded-xl size-12 flex items-center justify-center shadow-lg shadow-primary/20">
+                            <span className="material-symbols-outlined text-2xl">bolt</span>
+                        </div>
+                        <div>
+                            <p className="text-white text-sm font-bold font-display">Día 12: El Silencio y la Gratitud</p>
+                            <p className="text-white/50 text-[11px] font-medium tracking-wide">Reto Devocional 21 • Nivel Avanzado</p>
+                        </div>
+                    </div>
+                    <main className="flex-1 overflow-y-auto p-4 space-y-6 pt-6">
+                        <div className="flex items-start gap-3 max-w-[90%]">
+                            <div className="flex flex-col gap-1.5 items-start">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Agente IA</span>
+                                </div>
+                                <div className="bg-gradient-to-br from-violet-600 to-blue-600 text-white text-[15px] font-medium leading-relaxed rounded-3xl rounded-tl-none px-5 py-3.5 shadow-xl shadow-primary/20 border border-white/10">
+                                    ¿Cómo crees que la práctica del silencio esta mañana ha cambiado tu perspectiva sobre el estrés cotidiano? ✨
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3 justify-end ml-auto max-w-[90%]">
+                            <div className="flex flex-col gap-1.5 items-end">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-white/40 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Tú</span>
+                                </div>
+                                <div className="glass-effect text-white text-[15px] font-medium leading-relaxed rounded-3xl rounded-tr-none px-5 py-3.5 shadow-sm border border-white/10">
+                                    Me sentí más en paz, aunque mi mente divagaba a ratos hacia las tareas pendientes.
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3 max-w-[90%]">
+                            <div className="flex flex-col gap-1.5 items-start">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Reflexionando</span>
+                                </div>
+                                <div className="glass-effect px-5 py-4 rounded-3xl rounded-tl-none flex items-center gap-3 border border-white/10">
+                                    <div className="flex gap-1.5">
+                                        <div className="size-2 bg-primary rounded-full dot-ani"></div>
+                                        <div className="size-2 bg-blue-500 rounded-full dot-ani dot-2"></div>
+                                        <div className="size-2 bg-cyan-400 rounded-full dot-ani dot-3"></div>
+                                    </div>
+                                    <span className="text-white/60 text-sm font-medium italic">IA conectando con tu historia...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                    <footer className="p-4 bg-slate-dark/80 backdrop-blur-xl border-t border-white/5 safe-area-bottom pb-28">
+                        <div className="flex items-center gap-2 bg-white/5 rounded-2xl px-2 py-2 border border-white/10 focus-within:border-primary/50 transition-colors">
+                            <button className="p-2 text-white/40 hover:text-primary transition-colors">
+                                <span className="material-symbols-outlined">add_circle</span>
+                            </button>
+                            <input className="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder:text-white/20 text-sm py-2" placeholder="Responde desde el corazón..." type="text"/>
+                            <button className="bg-gradient-to-tr from-primary to-blue-600 text-white size-10 rounded-xl flex items-center justify-center shadow-lg shadow-primary/40 active:scale-90 transition-transform">
+                                <span className="material-symbols-outlined text-[20px] fill-1">send</span>
+                            </button>
+                        </div>
+                    </footer>
+                    <Navigation activeTab="community" />
+                </div>
+            );
+        };
+
+        // --- Screen 4: Gamification & Progress ---
+        const ProgressPage = () => {
+            return (
+                <div className="bg-background-dark font-sans text-slate-100 min-h-screen flex flex-col max-w-[430px] mx-auto border-x border-white/5">
+                    <header className="flex items-center justify-between p-6 sticky top-0 bg-background-dark/80 backdrop-blur-xl z-30">
+                        <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+                            <span className="material-symbols-outlined text-xl">arrow_back_ios_new</span>
+                        </button>
+                        <h1 className="text-lg font-extrabold tracking-tight uppercase">Progreso</h1>
+                        <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10">
+                            <span className="material-symbols-outlined text-xl text-neon-green">bolt</span>
+                        </button>
+                    </header>
+                    <main className="flex-1 overflow-y-auto px-6 pb-28">
+                        <section className="flex flex-col items-center py-6">
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-gradient-to-tr from-orange-500 via-yellow-400 to-neon-green rounded-full blur-3xl opacity-20 scale-150"></div>
+                                <div className="relative w-48 h-48 flex items-center justify-center">
+                                    <div className="absolute inset-0 rounded-full border-2 border-dashed border-white/20 animate-[spin_20s_linear_infinite]"></div>
+                                    <div className="w-40 h-40 rounded-full bg-gradient-to-br from-slate-800 to-black p-[2px] shadow-2xl overflow-hidden">
+                                        <div className="w-full h-full rounded-full bg-slate-900 flex flex-col items-center justify-center relative">
+                                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(255,140,0,0.3),transparent_70%)]"></div>
+                                            <span className="material-symbols-outlined text-7xl bg-gradient-to-b from-yellow-300 via-orange-500 to-red-600 bg-clip-text text-transparent" style={{fontVariationSettings: "'FILL' 1"}}>shield</span>
+                                            <span className="material-symbols-outlined absolute text-3xl text-white drop-shadow-md mt-1" style={{fontVariationSettings: "'FILL' 1"}}>local_fire_department</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="text-center mt-6 space-y-1">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-400">Nivel Actual</span>
+                                <h2 className="text-4xl font-black italic tracking-tighter">VALIENTE</h2>
+                                <div className="flex items-center justify-center gap-2 pt-2">
+                                    <span className="h-[1px] w-8 bg-white/20"></span>
+                                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Rumbo a Fiel</p>
+                                    <span className="h-[1px] w-8 bg-white/20"></span>
+                                </div>
+                            </div>
+                        </section>
+                        <section className="glass-morphism rounded-2xl p-6 mt-4 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-4 opacity-10">
+                                <span className="material-symbols-outlined text-6xl">trending_up</span>
+                            </div>
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Racha de Fe</span>
+                                    <span className="text-3xl font-black text-white">14<span className="text-sm font-medium text-slate-500 ml-1">/ 21 DÍAS</span></span>
+                                </div>
+                                <div className="bg-electric-blue/10 px-3 py-1 rounded-full border border-electric-blue/20">
+                                    <span className="text-xs font-black text-electric-blue uppercase">66% XP</span>
+                                </div>
+                            </div>
+                            <div className="relative h-4 w-full bg-white/5 rounded-full p-1 border border-white/10">
+                                <div className="absolute top-1 left-1 bottom-1 bg-electric-blue/30 blur-md rounded-full" style={{width: '66%'}}></div>
+                                <div className="relative h-full bg-gradient-to-r from-electric-blue to-neon-green rounded-full shadow-[0_0_15px_rgba(0,229,255,0.6)]" style={{width: '66%'}}>
+                                    <div className="absolute right-0 top-0 bottom-0 w-4 bg-white/40 blur-[2px] rounded-full"></div>
+                                </div>
+                            </div>
+                            <p className="mt-4 text-[11px] text-slate-400 font-medium text-center bg-white/5 py-2 rounded-lg border border-white/5">
+                                🔥 Estás a solo <span className="text-neon-green font-bold">7 días</span> de tu nueva jerarquía
+                            </p>
+                        </section>
+                        <section className="grid grid-cols-2 gap-4 mt-6">
+                            <div className="bg-card-dark border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center relative overflow-hidden group">
+                                <span className="material-symbols-outlined text-neon-green mb-1 text-3xl">bolt</span>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase mb-1 tracking-tighter">Racha Actual</span>
+                                <span className="text-xl font-black text-white">14 DÍAS</span>
+                            </div>
+                            <div className="bg-card-dark border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center relative overflow-hidden group">
+                                <span className="material-symbols-outlined text-electric-blue mb-1 text-3xl">workspace_premium</span>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase mb-1 tracking-tighter">Coleccionables</span>
+                                <span className="text-xl font-black text-white">06 / 21</span>
+                            </div>
+                        </section>
+                        <section className="mt-8">
+                            <div className="flex items-center justify-between mb-6 px-1">
+                                <h3 className="text-sm font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-neon-green text-lg">category</span> Mis Coleccionables
+                                </h3>
+                                <span className="text-[10px] font-bold text-slate-500">VER TODO</span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                                <Badge title="Semilla" icon="potted_plant" color="text-neon-green" borderColor="border-neon-green" shadow="rgba(57,255,20,0.5)" />
+                                <Badge title="Pergamino" icon="history_edu" color="text-electric-blue" borderColor="border-electric-blue" shadow="rgba(0,229,255,0.5)" />
+                                <div className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/5 opacity-40 grayscale">
+                                    <div className="w-14 h-14 flex items-center justify-center rounded-xl bg-slate-900 border border-dashed border-white/20">
+                                        <span className="material-symbols-outlined text-2xl text-slate-500">lock</span>
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-tight text-slate-500">Bloqueado</span>
+                                </div>
+                            </div>
+                        </section>
+                    </main>
+                    <Navigation activeTab="progreso" />
+                </div>
+            );
+        };
+
+        const Badge = ({ title, icon, color, borderColor, shadow }) => (
+            <div className={`group flex flex-col items-center gap-3 p-4 rounded-2xl bg-gradient-to-b from-white/10 to-transparent border border-white/10 badge-glow ${color}`}>
+                <div className={`relative w-14 h-14 flex items-center justify-center rounded-xl bg-black border-2 ${borderColor} shadow-[inset_0_0_10px_${shadow}]`}>
+                    <span className="material-symbols-outlined text-3xl transition-transform group-hover:scale-110">{icon}</span>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-tight text-white">{title}</span>
+            </div>
+        );
+
+        // --- Screen 5: Admin Dashboard ---
+        const AdminPage = () => {
+            return (
+                <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-bg-main text-slate-900 max-w-[430px] mx-auto border-x border-white/5">
+                    <header className="sticky top-0 z-50 flex items-center bg-[#111827]/90 backdrop-blur-xl p-5 justify-between border-b border-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-vibrant-purple to-vibrant-teal text-white shadow-lg shadow-vibrant-purple/20">
+                                <span className="material-symbols-outlined text-2xl">monitoring</span>
+                            </div>
+                            <div>
+                                <h1 className="text-lg font-extrabold leading-tight tracking-tight text-white">Insights</h1>
+                                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Admin Dashboard</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-slate-300">
+                                <span className="material-symbols-outlined">notifications</span>
+                            </button>
+                            <div className="h-10 w-10 rounded-full border-2 border-vibrant-teal/30 p-0.5">
+                                <img alt="Profile" className="w-full h-full object-cover rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOYDVm_7WoI8xAkEH-DM07aDvTDUuhPFj-haN8VPRIBKNYMTf3P8fFwUBcdHULgYAfXH33mBwMjbOeEa6mO11UxsD0aAgVgq76bbGNId-K09lVDwfv4eL4yNravmu46umNfc5XWRTAf96C4SiKNgh59Ne85zYz9SPXCxKvz9SNasbhQaDiFRl-vfjoLvPqovtcH5DHN9vZ6jdTrMshcqGzaYt6kJJGgq2CDkIN1O3EqJN4L7nqI-TgrnbmIOFvA2ZuyOBeleq1sic"/>
+                            </div>
+                        </div>
+                    </header>
+                    <main className="flex flex-col gap-6 p-5 pb-32">
+                        <section className="rounded-3xl bg-white p-6 shadow-2xl shadow-black/20">
+                            <div className="flex items-start justify-between mb-6">
+                                <div>
+                                    <h2 className="text-sm font-bold text-slate-400 uppercase tracking-tighter mb-1">Health Performance</h2>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-4xl font-extrabold text-slate-900">92.4%</span>
+                                        <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">+12.5%</span>
+                                    </div>
+                                </div>
+                                <div className="flex bg-slate-100 p-1 rounded-xl">
+                                    <button className="px-3 py-1.5 text-[10px] font-bold rounded-lg bg-white shadow-sm">WEEK</button>
+                                    <button className="px-3 py-1.5 text-[10px] font-bold text-slate-400">MONTH</button>
+                                </div>
+                            </div>
+                            <div className="relative h-40 w-full mt-4">
+                                <svg className="h-full w-full" preserveAspectRatio="none" viewBox="0 0 400 120">
+                                    <path d="M0,100 Q50,110 100,85 T200,95 T300,70 T400,80" fill="none" opacity="0.6" stroke="#fb7185" strokeDasharray="4 4" strokeLinecap="round" strokeWidth="2.5"></path>
+                                    <path d="M0,80 Q50,60 100,70 T200,30 T300,50 T400,15" fill="none" stroke="#14b8a6" strokeLinecap="round" strokeWidth="4"></path>
+                                    <path d="M0,110 Q50,90 100,100 T200,60 T300,80 T400,40" fill="none" opacity="0.8" stroke="#8b5cf6" strokeLinecap="round" strokeWidth="3"></path>
+                                </svg>
+                                <div className="flex justify-between mt-4 px-1 text-[10px] font-bold text-slate-400">
+                                    <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-slate-100">
+                                <AdminStat label="Users" value="2,842" />
+                                <AdminStat label="Growth" value="+18%" color="text-vibrant-purple" />
+                                <AdminStat label="Alerts" value="12" color="text-vibrant-coral" />
+                            </div>
+                        </section>
+                        <section className="flex flex-col gap-4">
+                            <div className="flex items-center justify-between px-1">
+                                <h2 className="text-lg font-extrabold text-white">Critical Alerts</h2>
+                                <button className="text-xs font-bold text-vibrant-teal bg-vibrant-teal/10 px-3 py-1.5 rounded-full">HISTORY</button>
+                            </div>
+                            <div className="flex flex-col gap-4">
+                                <AlertCard 
+                                    title="Baja anímica detectada"
+                                    user="Marcos R. • Hace 15 min"
+                                    status="Pendiente"
+                                    statusColor="bg-rose-500"
+                                    icon="priority_high"
+                                    iconBg="bg-rose-50"
+                                    iconColor="text-rose-500"
+                                    desc="Patrón de lenguaje negativo y ausencia en los últimos 3 días de reflexión."
+                                />
+                                <AlertCard 
+                                    title="Inconsistencia Grupal"
+                                    user="Jóvenes Adultos • Hace 2h"
+                                    status="En Proceso"
+                                    statusColor="bg-amber-500"
+                                    icon="group"
+                                    iconBg="bg-amber-50"
+                                    iconColor="text-amber-500"
+                                    desc="Caída del 40% en la tasa de finalización del día 14. Posible desinterés temático."
+                                    assigned="Asignado a Pbro. Juan"
+                                />
+                            </div>
+                        </section>
+                    </main>
+                    <Navigation activeTab="admin" />
+                </div>
+            );
+        };
+
+        const AdminStat = ({ label, value, color = "text-slate-900" }) => (
+            <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-slate-400 uppercase">{label}</span>
+                <span className={`text-lg font-bold ${color}`}>{value}</span>
+            </div>
+        );
+
+        const AlertCard = ({ title, user, status, statusColor, icon, iconBg, iconColor, desc, assigned }) => (
+            <div className="bg-white rounded-3xl p-5 shadow-lg border border-white/10">
+                <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-2xl ${iconBg} flex items-center justify-center`}>
+                            <span className={`material-symbols-outlined ${iconColor} font-bold`}>{icon}</span>
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-extrabold text-slate-900">{title}</h3>
+                            <p className="text-[11px] font-medium text-slate-400">{user}</p>
+                        </div>
+                    </div>
+                    <span className={`text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-xl ${statusColor} text-white`}>{status}</span>
+                </div>
+                <p className="text-xs leading-relaxed text-slate-600 font-medium mb-5 bg-slate-50 p-3 rounded-2xl">
+                    {desc}
+                </p>
+                <div className="flex items-center justify-between">
+                    {assigned ? (
+                        <div className="flex items-center gap-2">
+                             <img alt="Pastor" className="w-7 h-7 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOYDVm_7WoI8xAkEH-DM07aDvTDUuhPFj-haN8VPRIBKNYMTf3P8fFwUBcdHULgYAfXH33mBwMjbOeEa6mO11UxsD0aAgVgq76bbGNId-K09lVDwfv4eL4yNravmu46umNfc5XWRTAf96C4SiKNgh59Ne85zYz9SPXCxKvz9SNasbhQaDiFRl-vfjoLvPqovtcH5DHN9vZ6jdTrMshcqGzaYt6kJJGgq2CDkIN1O3EqJN4L7nqI-TgrnbmIOFvA2ZuyOBeleq1sic"/>
+                             <span className="text-[10px] font-bold text-slate-400">{assigned}</span>
+                        </div>
+                    ) : (
+                        <div className="flex -space-x-2">
+                            <img alt="AI" className="w-7 h-7 rounded-full border-2 border-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOYDVm_7WoI8xAkEH-DM07aDvTDUuhPFj-haN8VPRIBKNYMTf3P8fFwUBcdHULgYAfXH33mBwMjbOeEa6mO11UxsD0aAgVgq76bbGNId-K09lVDwfv4eL4yNravmu46umNfc5XWRTAf96C4SiKNgh59Ne85zYz9SPXCxKvz9SNasbhQaDiFRl-vfjoLvPqovtcH5DHN9vZ6jdTrMshcqGzaYt6kJJGgq2CDkIN1O3EqJN4L7nqI-TgrnbmIOFvA2ZuyOBeleq1sic"/>
+                            <div className="w-7 h-7 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center text-[8px] font-bold">AI</div>
+                        </div>
+                    )}
+                    <button className={`${assigned ? 'bg-vibrant-teal/10 text-vibrant-teal' : 'bg-slate-900 text-white'} text-[10px] font-bold px-4 py-2 rounded-xl flex items-center gap-2`}>
+                        {assigned ? 'DETALLES' : 'ATENDER'} {!assigned && <span className="material-symbols-outlined text-sm">chevron_right</span>}
+                    </button>
+                </div>
+            </div>
+        );
+
+        // --- App Component with Router ---
+        const App = () => {
+            return (
+                <MemoryRouter>
+                    <Routes>
+                        <Route path="/" element={<DashboardPage />} />
+                        <Route path="/lectura" element={<ReadingPage />} />
+                        <Route path="/ia" element={<AIChatPage />} />
+                        <Route path="/progreso" element={<ProgressPage />} />
+                        <Route path="/admin" element={<AdminPage />} />
+                    </Routes>
+                </MemoryRouter>
+            );
+        };
+
+        const container = document.getElementById('root');
+        const root = createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
