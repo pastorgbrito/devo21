@@ -1,9 +1,11 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
     const { user } = useAuth();
+    const router = useRouter();
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -22,7 +24,10 @@ export default function HomePage() {
                     <p className="text-slate-400 text-sm leading-relaxed">
                         Continúa tu crecimiento espiritual con el devocional del día. Tu IA Socrática te está esperando.
                     </p>
-                    <button className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white text-navy-dark font-black uppercase tracking-tighter text-sm hover:scale-105 active:scale-95 transition-all">
+                    <button
+                        onClick={() => router.push("/study")}
+                        className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white text-navy-dark font-black uppercase tracking-tighter text-sm hover:scale-105 active:scale-95 transition-all"
+                    >
                         <span className="material-symbols-outlined fill-1">bolt</span>
                         Empezar ahora
                     </button>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
 import { useRouter } from "next/navigation";
 import { User as DbUser } from "@/types/db";
@@ -11,6 +11,7 @@ export default function LoginPage() {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [name, setName] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -49,8 +50,21 @@ export default function LoginPage() {
                 await setDoc(doc(db, "users", user.uid), newUser);
                 router.push("/");
             }
-        } catch (err: any) {
-            setError(err.message || "Error de autenticación");
+        } catch (err: unknown) {
+            let errorMsg = "Ocurrió un error de autenticación.";
+            if (err instanceof Error) {
+                // Firebase err.code check requires type casting or any, but we can check the message
+                const fbErr = err as { code?: string, message?: string };
+                if (fbErr.code === "auth/invalid-email") errorMsg = "El correo electrónico no es válido.";
+                else if (fbErr.code === "auth/user-not-found" || fbErr.code === "auth/wrong-password" || fbErr.code === "auth/invalid-credential") errorMsg = "Correo o contraseña incorrectos.";
+                else if (fbErr.code === "auth/email-already-in-use") errorMsg = "Este correo ya está registrado.";
+                else if (fbErr.code === "auth/weak-password") errorMsg = "La contraseña debe tener al menos 6 caracteres.";
+                else if (fbErr.message) errorMsg = fbErr.message;
+            } else if (typeof err === "string") {
+                errorMsg = err;
+            }
+
+            setError(errorMsg);
         } finally {
             setLoading(false);
         }
@@ -111,15 +125,27 @@ export default function LoginPage() {
                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
                             Contraseña
                         </label>
-                        <input
-                            type="password"
-                            required
-                            placeholder="••••••••"
-                            minLength={6}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-5 py-3 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-slate-600 focus:border-primary outline-none transition-all"
-                        />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                required
+                                placeholder="••••••••"
+                                minLength={6}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full px-5 py-3 pr-12 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-slate-600 focus:border-primary outline-none transition-all"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors flex items-center p-1"
+                                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                            >
+                                <span className="material-symbols-outlined text-[20px]">
+                                    {showPassword ? "visibility_off" : "visibility"}
+                                </span>
+                            </button>
+                        </div>
                     </div>
 
                     <button

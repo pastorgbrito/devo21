@@ -9,20 +9,20 @@ Este es el plan macro para construir Devo21 de acuerdo con el documento de espec
 
 ## Proposed Changes
 
-### FASE 1: Core de Autenticación, Roles y Base de Datos
-* **Auth & DB**: Implementación de registro (Firebase Auth) y sincronización con un perfil en la colección `users` de Firestore. Modelado de las colecciones `churches` y `groups`.
-* **Estados de Usuario**: Manejo del estado `PENDING`, `ACTIVE`, `INACTIVE`.
-* **Routing Protegido**: Middleware o HOCs en Next.js para interceptar usuarios no aprobados y mandarlos a `/pending`.
+### FASE 1: Core de Autenticación, Roles y Base de Datos (COMPLETADA ✅)
+* **Auth & DB**: Implementado registro y perfiles en Firestore.
+* **Estados de Usuario**: Manejo de `PENDING`, `ACTIVE`, `INACTIVE` operativo.
+* **Routing Protegido**: Ruteo inteligente basado en roles y estado desde `/`.
 
-### FASE 2: Interfaces Base (El "Cascarón")
-* **Super Admin Dashboard (PC)**: Implementación de la ruta `/admin` con una tabla para gestionar usuarios `PENDING`. Creación del componente `StudyUploader.tsx` para carga de contenido JSON.
-* **App Mobile-First (Otros roles)**: Creación del grupo de rutas `(app)` con un layout centralizado (`max-w-md mx-auto`). Implementación de `BottomTabs.tsx` para navegación persistente (Inicio, Estudio, Comunidad, Perfil).
-* **Lógica de Acceso**: Implementación de redireccionamientos automáticos basados en `role` y `status` desde la página raíz.
+### FASE 2: Interfaces Base (El "Cascarón") (COMPLETADA ✅)
+* **Super Admin Dashboard (PC)**: Dashboard en `/admin` con gestión de aprobación y `StudyUploader.tsx`.
+* **App Mobile-First**: Layout centralizado, `BottomTabs.tsx` y página de perfil funcional.
+* **Branding**: Estética premium aplicada a Login, Perfil y Dashboard.
 
-### FASE 3: Motor de Estudios e IA (Agente Socrático)
+### FASE 3: Motor de Estudios e IA (Agente Socrático) (PRÓXIMA ⏳)
 * **Gestor de Estudios**: Lógica para asignar y abrir el archivo JSON correspondiente al día.
 * **Interfaz de Chat PWA**: Ventana de conversación fluida tipo WhatsApp. Integración con TTS/SST.
-* **Prompts y Validaciones (Gemini)**: Instanciación rigurosa del agente con Gemini 2.5. Creación de la lógica "fase a fase" (Observación > Interpretación > Aplicación) donde el Agente retorna un flag para habilitar el avance del usuario. Detección de intenciones para alertas emocionales.
+* **Prompts y Validaciones (Gemini)**: Implementación del Agente Socrático con fases de estudio.
 
 ### FASE 4: Gamificación y Estructuras Sociales
 * **Tracking de Hábitos**: Registro del progreso y cálculo de rachas diarias sincronizado con el reloj del servidor mediante Server Actions.

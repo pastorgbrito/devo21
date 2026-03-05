@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function ProfilePage() {
     const { user, firebaseUser } = useAuth();
@@ -32,7 +33,7 @@ export default function ProfilePage() {
                 <div className="relative inline-block">
                     <div className="w-24 h-24 rounded-full bg-navy-card border-2 border-primary/30 flex items-center justify-center mx-auto overflow-hidden">
                         {firebaseUser?.photoURL ? (
-                            <img src={firebaseUser.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
+                            <Image src={firebaseUser.photoURL} alt={user.displayName} width={96} height={96} className="w-full h-full object-cover" />
                         ) : (
                             <span className="material-symbols-outlined text-5xl text-primary/50">person</span>
                         )}
